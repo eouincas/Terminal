@@ -1,44 +1,27 @@
-name: Build APK
+name: Android CI
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
-      - name: Create Gradle Wrapper
-        run: |
-          mkdir -p gradle/wrapper
-          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.4-bin.zip" > gradle/wrapper/gradle-wrapper.properties
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-          cat > gradlew << 'EOF'
-          #!/bin/sh
-          curl -s https://raw.githubusercontent.com/gradle/gradle/master/gradlew > /tmp/gradlew
-          chmod +x /tmp/gradlew
-          exec /tmp/gradlew "$@"
-          EOF
-          chmod +x gradlew
+      - name: Grant execute permission
+        run: chmod +x gradlew || true
 
       - name: Build APK
-        run: |
-          ./gradlew assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-    
-        with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/*.apk
+        run: ./gradlew assembleDebug
